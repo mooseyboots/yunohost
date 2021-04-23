@@ -359,6 +359,12 @@ def tools_postinstall(operation_logger, domain, password, ignore_dyndns=False,
     except Exception as e:
         logger.warning(str(e))
 
+    # Create the archive directory (makes it easier for people to upload backup
+    # archives, otherwise it's only created after running `yunohost backup
+    # create` once.
+    from yunohost.backup import _create_archive_dir
+    _create_archive_dir()
+
     # Init migrations (skip them, no need to run them on a fresh system)
     _skip_all_migrations()
 
@@ -368,7 +374,6 @@ def tools_postinstall(operation_logger, domain, password, ignore_dyndns=False,
     service_enable("yunohost-firewall")
     service_start("yunohost-firewall")
 
-    regen_conf(force=True)
     regen_conf(names=["ssh"], force=True)
 
     # Restore original ssh conf, as chosen by the
@@ -383,6 +388,8 @@ def tools_postinstall(operation_logger, domain, password, ignore_dyndns=False,
     original_sshd_conf = '/etc/ssh/sshd_config.before_yunohost'
     if os.path.exists(original_sshd_conf):
         os.rename(original_sshd_conf, '/etc/ssh/sshd_config')
+
+    regen_conf(force=True)
 
     logger.success(m18n.n('yunohost_configured'))
 
@@ -552,7 +559,7 @@ def tools_upgrade(operation_logger, apps=None, system=False, allow_yunohost_upgr
 
         # Critical packages are packages that we can't just upgrade
         # randomly from yunohost itself... upgrading them is likely to
-        critical_packages = ["moulinette", "yunohost", "yunohost-admin", "ssowat"]
+        critical_packages = ["moulinette", "yunohost", "yunohost-admin", "ssowat", "openssl"]
 
         critical_packages_upgradable = [p["name"] for p in upgradables if p["name"] in critical_packages]
         noncritical_packages_upgradable = [p["name"] for p in upgradables if p["name"] not in critical_packages]
@@ -586,12 +593,17 @@ def tools_upgrade(operation_logger, apps=None, system=False, allow_yunohost_upgr
 
             logger.debug("Running apt command :\n{}".format(dist_upgrade))
 
+
             def is_relevant(l):
-                return "Reading database ..." not in l.rstrip()
+                irrelevants = [
+                    "service sudo-ldap already provided",
+                    "Reading database ..."
+                ]
+                return all(i not in l.rstrip() for i in irrelevants)
 
             callbacks = (
                 lambda l: logger.info("+ " + l.rstrip() + "\r") if is_relevant(l) else logger.debug(l.rstrip() + "\r"),
-                lambda l: logger.warning(l.rstrip()),
+                lambda l: logger.warning(l.rstrip()) if is_relevant(l) else logger.debug(l.rstrip()),
             )
             returncode = call_async_output(dist_upgrade, callbacks, shell=True)
             if returncode != 0:
@@ -601,6 +613,10 @@ def tools_upgrade(operation_logger, apps=None, system=False, allow_yunohost_upgr
                                       packages_list=', '.join(noncritical_packages_upgradable)))
                 operation_logger.error(m18n.n('packages_upgrade_failed'))
                 raise YunohostError(m18n.n('packages_upgrade_failed'))
+
+            # Mark all critical packages as unheld
+            for package in critical_packages:
+                check_output("apt-mark unhold %s" % package)
 
         #
         # Critical packages upgrade

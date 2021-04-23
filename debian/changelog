@@ -1,3 +1,75 @@
+yunohost (3.8.6) stable; urgency=low
+
+  - security: Various permissions tweaks to protect from malicious yunohost users (2ffa27c9, 0db4b80e, 750f1c13)
+
+ -- Alexandre Aubin <alex.aubin@mailoo.org>  Sat, 10 Apr 2021 01:47:16 +0200
+
+yunohost (3.8.5.9) stable; urgency=low
+
+  - Forbid users from using SSH as a VPN (even if SSH login is disabled) (#1050)
+
+ -- Alexandre Aubin <alex.aubin@mailoo.org>  Fri, 11 Sep 2020 20:38:04 +0200
+
+yunohost (3.8.5.8) stable; urgency=low
+
+  - Remove disclaimer about the migration procedure being still unstable-ish  (HEAD -> stretch-unstable)
+  - Add apt regenconf hook to manage for more consistent management of the sury pinning policy
+  - Make sure that openssl is not from sury before continuing the migration
+  - Make sure to unhold openssl before downgrade...
+
+ -- Alexandre Aubin <alex.aubin@mailoo.org>  Mon, 31 Aug 2020 20:26:12 +0200
+
+yunohost (3.8.5.7) stable; urgency=low
+
+  - [fix] Typo in previous commit -.- + make sure to hold openssl during
+  regular upgrade to avoid having it re-upgraded right away
+
+ -- Alexandre Aubin <alex.aubin@mailoo.org>  Sun, 02 Aug 2020 19:49:30 +0200
+
+yunohost (3.8.5.6) stable; urgency=low
+
+  - [fix] Buster migration: automatically downgrade openssl version if current version is from sury
+
+ -- Alexandre Aubin <alex.aubin@mailoo.org>  Fri, 31 Jul 2020 15:50:18 +0200
+
+yunohost (3.8.5.5) stable; urgency=low
+
+  - [enh] Allow to extend the nginx default_server configuration (f1bfc521)
+  - [mod] Move redirect to /yunohost/admin to a separate nginx conf file to allow customizing it more easily (ac9182d6)
+  - [enh] Make sure to validate/upgrade that we don't have any active weak certificate used by nginx at the beginning of the buster migration, otherwise nginx will later miserably fail to start (d4358897)
+  - [fix] get_files_diff crashing if {orig,new}_file is None (7bfe564a)
+  - [enh] Remove some useless message about file that "wasn't deleted because it doesn't exist." (#1024)
+  - [mod] Remove useless robot protection code (#1026)
+  - [fix] Let's not redefine the value for the 'service' var ... (1a2f26dc)
+  - [fix] More general stretch->buster patching for sources.list (#1028)
+  - [mod] Tweak custom disclaimer about the migration still being a bit touchy in preparation for stable release (852dea07)
+  - [mod] Typo/wording in en.json (#1030)
+  - [i18n] Translations updated for Catalan, French, Italian, Occitan
+
+  Thanks to all contributors <3 ! (É. Gaspar, Kay0u, L. Noferini, ppr, Quentí, xaloc33)
+
+ -- Alexandre Aubin <alex.aubin@mailoo.org>  Mon, 27 Jul 2020 19:03:33 +0200
+
+yunohost (3.8.5.4) testing; urgency=low
+
+  - [fix] Fix unscd version parsing *again*
+  - [fix] Enforce permissions on rspamd log directory
+  - [enh] Ignore stupid warnings about sudo-ldap that is already provided
+
+ -- Alexandre Aubin <alex.aubin@mailoo.org>  Sun, 21 Jun 2020 23:37:09 +0200
+
+yunohost (3.8.5.3) testing; urgency=low
+
+  - [fix] Fix the fix about unscd downgrade :/
+
+ -- Alexandre Aubin <alex.aubin@mailoo.org>  Fri, 19 Jun 2020 18:50:58 +0200
+
+yunohost (3.8.5.2) testing; urgency=low
+
+  - [fix] Small issue with unscd upgrade/downgrade ... new version ain't always 0.53.1, so find it using dirty scrapping
+
+ -- Alexandre Aubin <alex.aubin@mailoo.org>  Thu, 18 Jun 2020 16:19:35 +0200
+
 yunohost (3.8.5.1) testing; urgency=low
     
   - [fix] Update Stretch->Buster migration disclaimer to make it clear that this is alpha-stage
@@ -10,6 +82,22 @@ yunohost (3.8.5) testing; urgency=low
   - [fix] Disable/skip ntp when inside a container (9d0c0924)
 
  -- Alexandre Aubin <alex.aubin@mailoo.org>  Sat, 06 Jun 2020 02:11:51 +0200
+
+yunohost (3.8.4.9) stable; urgency=low
+
+  - [fix] Force lowercase on domain names (804f4b3e)
+  - [fix] Add dirmngr to Depends:, needed for apt-key / gpg (cd115ed8)
+  - [fix] Improve debugging when diagnosis ain't happy when renewing certs (0f0194be)
+  - [enh] Add yunohost version to logs metadata (d615546b)
+  - [enh] Alway filter irrelevant log lines when sharing it (38704cba, 51d53be5)
+  - [fix] Regen-conf outputing many 'forget-about-it' because of files flagged as to be removed (f4525488)
+  - [fix] postfix per-domain destination concurrency (#988)
+  - [fix] Call regenconf for ssh before the general regenconf during the postinstall to avoid an irrelevant warning (7805837b)
+  - [i18n] Translations updated for Catalan, French, German
+
+  Thanks to all contributors <3 ! (taziden, ljf, ppr, xaloc33, Yasss Gurl)
+
+ -- Alexandre Aubin <alex.aubin@mailoo.org>  Thu, 18 Jun 2020 15:13:01 +0200
 
 yunohost (3.8.4.8) stable; urgency=low
 
