@@ -97,8 +97,8 @@ def app_catalog(full=False, with_categories=False):
                 "level": infos["level"],
             }
         else:
-            infos["manifest"]["arguments"] = _set_default_ask_questions(
-                infos["manifest"].get("arguments", {})
+            infos["manifest"]["install"] = _set_default_ask_questions(
+                infos["manifest"].get("install", {})
             )
 
     # Trim info for categories if not using --full
@@ -215,8 +215,8 @@ def app_info(app, full=False):
         return ret
 
     ret["manifest"] = local_manifest
-    ret["manifest"]["arguments"] = _set_default_ask_questions(
-        ret["manifest"].get("arguments", {})
+    ret["manifest"]["install"] = _set_default_ask_questions(
+        ret["manifest"].get("install", {})
     )
     ret["settings"] = settings
 
@@ -230,7 +230,7 @@ def app_info(app, full=False):
         os.path.join(APPS_SETTING_PATH, app, "scripts", "backup")
     ) and os.path.exists(os.path.join(APPS_SETTING_PATH, app, "scripts", "restore"))
     ret["supports_multi_instance"] = is_true(
-        local_manifest.get("multi_instance", False)
+        local_manifest.get("integration", {}).get("multi_instance", False)
     )
 
     ret["permissions"] = permissions
@@ -964,7 +964,7 @@ def app_install(
     if packaging_format >= 2:
         for arg_name, arg_value_and_type in args_odict.items():
 
-            # ... except is_public because it should not be saved and should only be about initializing permisisons
+            # ... except is_public ....
             if arg_name == "is_public":
                 continue
 
@@ -1840,7 +1840,7 @@ def app_config_show_panel(operation_logger, app):
                         option["default"] = parsed_values[generated_name]
 
                     args_dict = _parse_args_in_yunohost_format(
-                        {option["name"]: parsed_values[generated_name]}, [option]
+                        {option["name"]: parsed_values[generated_name]}, {option["name"]: option}
                     )
                     option["default"] = args_dict[option["name"]][0]
                 else:
@@ -2016,15 +2016,7 @@ def _get_app_actions(app_id):
         for key, value in toml_actions.items():
             action = dict(**value)
             action["id"] = key
-
-            arguments = []
-            for argument_name, argument in value.get("arguments", {}).items():
-                argument = dict(**argument)
-                argument["name"] = argument_name
-
-                arguments.append(argument)
-
-            action["arguments"] = arguments
+            action["arguments"] = value.get("arguments", {})
             actions.append(action)
 
         return actions
@@ -2468,21 +2460,19 @@ def _convert_v1_manifest_to_v2(manifest):
     return manifest
 
 
-def _set_default_ask_questions(arguments):
+def _set_default_ask_questions(questions, script_name="install"):
 
     # arguments is something like
-    # { "install": [
-    #       { "name": "domain",
+    # { "domain":
+    #       {
     #         "type": "domain",
     #         ....
     #       },
-    #       { "name": "path",
-    #         "type": "path"
+    #    "path": {
+    #         "type": "path",
     #         ...
     #       },
     #       ...
-    #   ],
-    #  "upgrade": [ ... ]
     # }
 
     # We set a default for any question with these matching (type, name)
@@ -2494,31 +2484,22 @@ def _set_default_ask_questions(arguments):
         ("path", "path"),  # i18n: app_manifest_install_ask_path
         ("password", "password"),  # i18n: app_manifest_install_ask_password
         ("user", "admin"),  # i18n: app_manifest_install_ask_admin
-        ("boolean", "is_public"),
-    ]  # i18n: app_manifest_install_ask_is_public
+        ("boolean", "is_public"),  # i18n: app_manifest_install_ask_is_public
+    ]
 
-    for script_name, arg_list in arguments.items():
+    for question_name, question in questions.items():
+        question["name"] = question_name
 
-        # We only support questions for install so far, and for other
-        if script_name != "install":
-            continue
+        # If this question corresponds to a question with default ask message...
+        if any(
+            (question.get("type"), question["name"]) == q
+            for q in questions_with_default
+        ):
+            # The key is for example "app_manifest_install_ask_domain"
+            key = "app_manifest_%s_ask_%s" % (script_name, question["name"])
+            question["ask"] = m18n.n(key)
 
-        for arg in arg_list:
-
-            # Do not override 'ask' field if provided by app ?... Or shall we ?
-            # if "ask" in arg:
-            #    continue
-
-            # If this arg corresponds to a question with default ask message...
-            if any(
-                (arg.get("type"), arg["name"]) == question
-                for question in questions_with_default
-            ):
-                # The key is for example "app_manifest_install_ask_domain"
-                key = "app_manifest_%s_ask_%s" % (script_name, arg["name"])
-                arg["ask"] = m18n.n(key)
-
-    return arguments
+    return questions
 
 
 def _get_git_last_commit_hash(repository, reference="HEAD"):
@@ -2703,7 +2684,7 @@ def _check_manifest_requirements(manifest, app_instance_name):
     """Check if required packages are met from the manifest"""
 
     packaging_format = int(manifest.get("packaging_format", 0))
-    if packaging_format not in [0, 1]:
+    if packaging_format not in [2]:
         raise YunohostValidationError("app_packaging_format_not_supported")
 
     requirements = manifest.get("requirements", dict())
@@ -2740,11 +2721,11 @@ def _parse_args_from_manifest(manifest, action, args={}):
         args -- A dictionnary of arguments to parse
 
     """
-    if action not in manifest["arguments"]:
+    if action not in manifest:
         logger.debug("no arguments found for '%s' in manifest", action)
         return OrderedDict()
 
-    action_args = manifest["arguments"][action]
+    action_args = manifest[action]
     return _parse_args_in_yunohost_format(args, action_args)
 
 
@@ -3053,12 +3034,13 @@ def _parse_args_in_yunohost_format(user_answers, argument_questions):
     """
     parsed_answers_dict = OrderedDict()
 
-    for question in argument_questions:
+    for question_name, question in argument_questions.items():
+        question["name"] = question_name
         parser = ARGUMENTS_TYPE_PARSERS[question.get("type", "string")]()
 
         answer = parser.parse(question=question, user_answers=user_answers)
         if answer is not None:
-            parsed_answers_dict[question["name"]] = answer
+            parsed_answers_dict[question_name] = answer
 
     return parsed_answers_dict
 
