@@ -655,13 +655,11 @@
     "diagnosis_apps_broken": "Actualmente esta aplicación está marcada como estragada no catálogo de aplicacións de YunoHost. Podería tratarse dun problema temporal mentras as mantedoras intentan arraxala. Entanto así a actualización da app está desactivada.",
     "diagnosis_apps_issue": "Atopouse un problema na app {app}",
     "diagnosis_apps_not_in_app_catalog": "Esta aplicación non está no catálgo de aplicacións de YunoHost. Se estivo no pasado e foi eliminada, deberías considerar desinstalala porque non recibirá actualizacións, e podería comprometer a integridade e seguridade do teu sistema.",
-    "app_argument_password_help_optional": "Escribe un espazo para limpar o contrasinal",
     "config_validate_date": "Debe ser unha data válida co formato YYYY-MM-DD",
     "config_validate_email": "Debe ser un email válido",
     "config_validate_time": "Debe ser unha hora válida tal que HH:MM",
     "config_validate_url": "Debe ser un URL válido",
     "danger": "Perigo:",
-    "app_argument_password_help_keep": "Preme Enter para manter o valor actual",
     "app_config_unable_to_read": "Fallou a lectura dos valores de configuración.",
     "config_apply_failed": "Fallou a aplicación da nova configuración: {error}",
     "config_forbidden_keyword": "O palabra chave '{keyword}' está reservada, non podes crear ou usar un panel de configuración cunha pregunta con este id.",
@@ -673,7 +671,6 @@
     "app_config_unable_to_apply": "Fallou a aplicación dos valores de configuración.",
     "config_cant_set_value_on_section": "Non podes establecer un valor único na sección completa de configuración.",
     "config_version_not_supported": "A versión do panel de configuración '{version}' non está soportada.",
-    "file_extension_not_accepted": "Rexeitouse o ficheiro '{path}' porque a súa extensión non está entre as aceptadas: {accept}",
     "invalid_number_max": "Ten que ser menor de {max}",
     "service_not_reloading_because_conf_broken": "Non se recargou/reiniciou o servizo '{name}' porque a súa configuración está estragada: {errors}"
 }

@@ -669,11 +669,8 @@
     "config_validate_url": "Вебадреса має бути дійсною",
     "config_version_not_supported": "Версії конфігураційної панелі '{version}' не підтримуються.",
     "danger": "Небезпека:",
-    "file_extension_not_accepted": "Файл '{path}' відхиляється, бо його розширення не входить в число прийнятих розширень: {accept}",
     "invalid_number_min": "Має бути більшим за {min}",
     "invalid_number_max": "Має бути меншим за {max}",
     "log_app_config_set": "Застосувати конфігурацію до застосунку '{}'",
-    "service_not_reloading_because_conf_broken": "Неможливо перезавантажити/перезапустити службу '{name}', тому що її конфігурацію порушено: {errors}",
-    "app_argument_password_help_optional": "Введіть один пробіл, щоб очистити пароль",
-    "app_argument_password_help_keep": "Натисніть Enter, щоб зберегти поточне значення"
+    "service_not_reloading_because_conf_broken": "Неможливо перезавантажити/перезапустити службу '{name}', тому що її конфігурацію порушено: {errors}"
 }
